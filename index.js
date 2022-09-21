@@ -83,7 +83,7 @@ async function hlsOption5(hlsUrl) {
   });
 }
 
-async function hlsOption6(hlsUrl) {
+async function hlsOption6(hlsUrl, output) {
   //https://video.stackexchange.com/questions/10730/combine-video-and-audio-ts-segments-coming-from-hls-stream
   let res = await fetch(hlsUrl);
   let body = await res.text();
@@ -105,26 +105,32 @@ async function hlsOption6(hlsUrl) {
   }
   // fetch best audio
   if (medias != null && medias.length > 0) audio = medias[medias.length - 1].url;
-  infs = new ffmpeg();
-  if (audio != null) infs.addInput(audio)
-  if (video != null) infs.addInput(video)
-  infs.outputOptions([
-    '-async 1'
-  ])
-  infs.output('test.mp4')
-  infs.on('start', function (commandLine) {
-    console.log('Spawned Ffmpeg with command: ' + commandLine);
-  })
-  infs.on('error', function (err, stdout, stderr) {
-    console.log('An error occurred: ' + err.message, err, stderr);
-  })
-  infs.on('progress', function (progress) {
-    console.log('Processing: ' + progress.percent + '% done')
-  })
-  infs.on('end', function (err, stdout, stderr) {
-    console.log('Finished processing!' /*, err, stdout, stderr*/)
-  })
-  infs.run();
+
+  // build and return promise
+  return new Promise((resolve, reject) => {
+    infs = new ffmpeg();
+    if (audio != null) infs.addInput(audio)
+    if (video != null) infs.addInput(video)
+    infs.outputOptions([
+      '-async 1'
+    ]);
+    infs.output(output);
+    infs.on('start', function (commandLine) {
+      console.log('Spawned Ffmpeg with command: ' + commandLine);
+    });
+    infs.on('progress', function (progress) {
+      console.log('Processing: ' + progress.percent + '% done')
+    });
+    infs.on('error', function (err, stdout, stderr) {
+      console.log('An error occurred: ' + err.message, err, stderr);
+      return reject(err);
+    });
+    infs.on('end', function (err, stdout, stderr) {
+      console.log('Finished processing!' /*, err, stdout, stderr*/)
+      return resolve();
+    });
+    infs.run();
+  });
 }
 
 async function main() {
@@ -166,7 +172,9 @@ async function main() {
   // await hlsOption5(hlsUrl);
 
   // fully working
-  await hlsOption6(hlsUrl);
+   hlsOption6(hlsUrl, "testing.mp4");
+   hlsOption6(hlsUrl, "testing1.mp4");
+   hlsOption6(hlsUrl, "testing2.mp4");
 }
 
 
