@@ -1,6 +1,6 @@
 {
   "name": "reddit_video_download",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -12,8 +12,14 @@
     "parcel-bundler": "^1.10.3"
   },
   "dependencies": {
+    "@munirsafi/hls-dl": "^0.1.1",
     "fluent-ffmpeg": "^2.1.2",
+    "hls-download": "^2.6.10",
+    "m3u8-multi-thread-downloader": "^1.0.1",
+    "m3u8_multi_downloader": "git+https://github.com/JohnnieFucker/m3u8Downloader.git",
+    "mpd-m3u8-to-json": "^0.1.3",
     "node-fetch": "^2.6.1",
+    "node-hls-downloader": "^2.2.0",
     "url-regex": "^5.0.0"
   }
 }
