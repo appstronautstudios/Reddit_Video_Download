@@ -7,8 +7,6 @@ const hlsdl = require('@munirsafi/hls-dl');
 const fs = require('fs');
 const m3u8parser = require("mpd-m3u8-to-json").m3u8Parser;
 const hlsDownload = require('hls-download');
-const downloader = require('m3u8-multi-thread-downloader');
-const m3u8Downloader = require('m3u8_multi_downloader');
 
 
 async function mpdOption1(mpdUrl) {
@@ -53,42 +51,11 @@ async function hlsOption2(hlsUrl) {
   });
 }
 
-async function hlsOption4(hlsUrl) {
-  let res = await fetch(hlsUrl);
-  let body = await res.text();
-  let json = m3u8parser(body, hlsUrl);
-  console.log(json);
-  let level = json.levels[json.levels.length - 1].url;
-  console.log("using stream: " + level);
-  downloader.download({
-    url: level,
-    processNum: 4, // 同时开启的线程数,线程不宜开的过多，否则容易造成资源无法正常下载的情况
-    filePath: './', // 所存放的文件夹
-    fileName: 'hlsOption4.mp4' // 视频资源的文件名
-  });
-}
-
-async function hlsOption5(hlsUrl) {
-  let res = await fetch(hlsUrl);
-  let body = await res.text();
-  let json = m3u8parser(body, hlsUrl);
-  console.log(json);
-  let level = json.levels[json.levels.length - 1].url;
-  console.log("using stream: " + level);
-  m3u8Downloader.download({
-    url: level,
-    processNum: 15,
-    filePath: './',
-    filmName: 'hlsOption5.mp4'
-  });
-}
-
 async function hlsOption6(hlsUrl, output) {
   //https://video.stackexchange.com/questions/10730/combine-video-and-audio-ts-segments-coming-from-hls-stream
   let res = await fetch(hlsUrl);
   let body = await res.text();
   let json = m3u8parser(body, hlsUrl);
-  console.log(json);
   let levels = json.levels;
   let medias = json.medias;
   let video = null;
@@ -168,13 +135,11 @@ async function main() {
 
   // no audio
   // await hlsOption2(hlsUrl);
-  // await hlsOption4(hlsUrl);
-  // await hlsOption5(hlsUrl);
 
   // fully working
-   hlsOption6(hlsUrl, "testing.mp4");
-   hlsOption6(hlsUrl, "testing1.mp4");
-   hlsOption6(hlsUrl, "testing2.mp4");
+  //  hlsOption6(hlsUrl, "testing.mp4");
+  //  hlsOption6(hlsUrl, "testing1.mp4");
+  //  hlsOption6(hlsUrl, "testing2.mp4");
 }
 
 
