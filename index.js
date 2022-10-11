@@ -1,6 +1,4 @@
 const ffmpeg = require("fluent-ffmpeg");
-const proc = new ffmpeg();
-const urlRegex = require("url-regex");
 const fetch = require("node-fetch");
 const download = require("node-hls-downloader").download;
 const hlsdl = require('@munirsafi/hls-dl');
@@ -75,37 +73,38 @@ async function hlsOption6(hlsUrl, output) {
 
   // build and return promise
   return new Promise((resolve, reject) => {
-    infs = new ffmpeg();
-    if (audio != null) infs.addInput(audio)
-    if (video != null) infs.addInput(video)
-    infs.outputOptions([
-      '-async 1'
-    ]);
-    infs.output(output);
-    infs.on('start', function (commandLine) {
-      console.log('Spawned Ffmpeg with command: ' + commandLine);
-    });
-    infs.on('progress', function (progress) {
-      console.log('Processing: ' + progress.percent + '% done')
-    });
-    infs.on('error', function (err, stdout, stderr) {
-      console.log('An error occurred: ' + err.message, err, stderr);
-      return reject(err);
-    });
-    infs.on('end', function (err, stdout, stderr) {
-      console.log('Finished processing!' /*, err, stdout, stderr*/)
-      return resolve();
-    });
-    infs.run();
+    try {
+      let infs = new ffmpeg();
+      infs.on('start', function (commandLine) {
+        console.log('Spawned Ffmpeg with command: ' + commandLine);
+      });
+      infs.on('error', function (err, stdout, stderr) {
+        reject(err);
+      });
+      infs.on('end', function (err, stdout, stderr) {
+        resolve();
+      });
+      if (audio != null) infs.addInput(audio)
+      if (video != null) infs.addInput(video)
+      infs.outputOptions([
+        "-xerror", // !!!IMPORTANT!!! forces a exit on error
+        "-async 1"
+      ]);
+      infs.output(output);
+      infs.run();
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
 async function main() {
+  // TESTING ONLY
   if (process.argv.length <= 2) {
     console.log('Missing URL.');
     console.log('Usage: node index.js <reddit-url> [output-folder]');
-    console.log('(the default output folder is ./');
-    console.log('Example: node index.js https://www.reddit.com/r/ItHadToBeBrazil/comments/chjfh1/i_wonder_how_much_that_upgrade_costed/ ~/Videos');
+    console.log('the default output folder is ./');
+    console.log('Example: node index.js https://www.reddit.com/r/TikTokCringe/comments/y0yyax/jack_black_being_awesome/');
     process.exit(0);
   }
 
@@ -120,10 +119,11 @@ async function main() {
   console.log(`Output folder > ${outputFolder}`);
   console.log(`URL > ${url}`);
 
-  let res = await fetch(url);
+  let res = await fetch(url + ".json");
   let json = await res.json();
   if (json.data == null) json = json[0]; //api has no children at root level, but posturl.json does
-  const redditVideoNode = json.data.children[0].data.media.reddit_video;
+  const child = json.data.children[0];
+  const redditVideoNode = child.data.media.reddit_video;
   const hlsUrl = redditVideoNode.hls_url;
   const dashUrl = redditVideoNode.dash_url;
   // const hlsUrl = "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8";
@@ -137,13 +137,17 @@ async function main() {
   // await hlsOption2(hlsUrl);
 
   // fully working
-  //  hlsOption6(hlsUrl, "testing.mp4");
-  //  hlsOption6(hlsUrl, "testing1.mp4");
-  //  hlsOption6(hlsUrl, "testing2.mp4");
+  await hlsOption6(hlsUrl, outputFolder + "testing.mp4")
+    .then(() => {
+      console.log("hls download complete!");
+    })
+    .catch(err => {
+      console.log(err);
+    });
 }
 
 
-// testing only
+// TESTING ONLY
 // main();
 
 exports.hlsDownload = hlsOption6;

@@ -17,7 +17,6 @@
     "hls-download": "^2.6.10",
     "mpd-m3u8-to-json": "^0.1.3",
     "node-fetch": "^2.6.1",
-    "node-hls-downloader": "^2.2.0",
-    "url-regex": "^5.0.0"
+    "node-hls-downloader": "^2.2.0"
   }
 }
