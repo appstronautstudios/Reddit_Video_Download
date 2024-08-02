@@ -74,24 +74,23 @@ async function hlsOption6(hlsUrl, output) {
   // build and return promise
   return new Promise((resolve, reject) => {
     try {
-      let infs = new ffmpeg();
-      infs.on('start', function (commandLine) {
-        console.log('Spawned Ffmpeg with command: ' + commandLine);
-      });
-      infs.on('error', function (err, stdout, stderr) {
-        reject(err);
-      });
-      infs.on('end', function (err, stdout, stderr) {
-        resolve();
-      });
-      if (audio != null) infs.addInput(audio)
-      if (video != null) infs.addInput(video)
-      infs.outputOptions([
-        "-xerror", // !!!IMPORTANT!!! forces a exit on error
-        "-async 1"
-      ]);
-      infs.output(output);
-      infs.run();
+      new ffmpeg()
+        .on('start', function (commandLine) {
+          console.log('Spawned Ffmpeg with command: ' + commandLine);
+        })
+        .on('error', function (err, stdout, stderr) {
+          reject(err);
+        })
+        .on('end', function (err, stdout, stderr) {
+          resolve();
+        })
+        .input(video)
+        .input(audio)
+        .outputOptions([
+          "-xerror", // !!!IMPORTANT!!! forces a exit on error
+          "-async 1"
+        ])
+        .save(output);
     } catch (error) {
       reject(error);
     }
@@ -100,23 +99,9 @@ async function hlsOption6(hlsUrl, output) {
 
 async function main() {
   // TESTING ONLY
-  if (process.argv.length <= 2) {
-    console.log('Missing URL.');
-    console.log('Usage: node index.js <reddit-url> [output-folder]');
-    console.log('the default output folder is ./');
-    console.log('Example: node index.js https://www.reddit.com/r/TikTokCringe/comments/y0yyax/jack_black_being_awesome/');
-    process.exit(0);
-  }
+  let url = process.argv[2];
+  if (url == null) url = "https://www.reddit.com/r/TikTokCringe/comments/y0yyax/jack_black_being_awesome/"; // default
 
-  const url = process.argv[2];
-
-  var outputFolder = './';
-
-  if (process.argv.length >= 4) outputFolder = process.argv[3];
-
-  if (!outputFolder.endsWith('/')) outputFolder += '/';
-
-  console.log(`Output folder > ${outputFolder}`);
   console.log(`URL > ${url}`);
 
   let res = await fetch(url + ".json");
@@ -137,7 +122,7 @@ async function main() {
   // await hlsOption2(hlsUrl);
 
   // fully working
-  await hlsOption6(hlsUrl, outputFolder + "testing.mp4")
+  await hlsOption6(hlsUrl, "testing.mp4")
     .then(() => {
       console.log("hls download complete!");
     })
